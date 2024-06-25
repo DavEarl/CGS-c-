@@ -20,6 +20,7 @@ constexpr int kUpArrow = 72;
 constexpr int kDownArrow = 80;
 
 constexpr int kEscapeKey = 27;
+constexpr int kBackspace = 8;
 
 void GetDimensions(int& width, int& height);
 void DisplayLevel(char* pLevel, int width, int height, int cursorX, int cursorY);
@@ -30,38 +31,121 @@ void DisplayLeftBorder();
 void DisplayRightBorder();
 bool EditLevel(char* pLevel, int& cursorX, int& cursorY, int width, int height);
 void SaveLevel(char* pLevel, int width, int height);
+void DisplayLegend();
+void RunEditor(char* pLevel, int width, int height);
 
 int main()
 {
-	int levelWidth = 0;
-	int levelHeight = 0;
+	char* pLevel = nullptr;
+	int levelWidth;
+	int levelHeight;
+	bool done = false;
 
-	GetDimensions(levelWidth, levelHeight);
-
-	char* pLevel = new char[levelWidth * levelHeight];
-
-	for (int i = 0; i < (levelWidth * levelHeight); i++)
+	while (!done)
 	{
-		pLevel[i] = ' ';
-	}
+		system("cls");
+		cout << "please select one of the following: " << endl;
+		cout << "1. Load Level" << endl;
+		cout << "2. New Level" << endl;
+		cout << "3. Quit" << endl;
 
+		int input;
+		cin >> input;
+
+		if (input == 1)
+		{
+			//load level
+			cout << "Enter Level Name: " << endl;
+			string levelName;
+			cin >> levelName;
+
+			levelName.insert(0, "../");
+
+			ifstream levelFile;
+			levelFile.open(levelName);
+
+			if (!levelFile)
+			{
+				cout << "opening failed" << endl;
+			}
+			else 
+			{
+				constexpr int tempSize = 25;
+				char temp[tempSize];
+
+				levelFile.getline(temp, tempSize, '\n');
+				levelWidth = atoi(temp);
+
+				levelFile.getline(temp, tempSize, '\n');
+				levelHeight = atoi(temp);
+
+				pLevel = new char[levelWidth * levelHeight];
+				levelFile.read(pLevel, levelWidth * levelHeight);
+				levelFile.close();
+
+				RunEditor(pLevel, levelWidth, levelHeight);
+
+				delete[] pLevel;
+				pLevel = nullptr;
+			}
+		}
+		else if (input == 2)
+		{
+			//new level
+			GetDimensions(levelWidth, levelHeight);
+
+			pLevel = new char[levelWidth * levelHeight];
+
+			for (int i = 0; i < (levelWidth * levelHeight); i++)
+			{
+				pLevel[i] = ' ';
+			}
+
+			RunEditor(pLevel, levelWidth, levelHeight);
+
+			delete[] pLevel;
+			pLevel = nullptr;
+		}
+		else
+		{
+			done = true;
+		}
+	}
+	
+}
+
+void RunEditor(char* pLevel, int width, int height)
+{
 	int cursorX = 0;
 	int cursorY = 0;
 	bool doneEditing = false;
 	while (!doneEditing)
 	{
 		system("cls");
-		DisplayLevel(pLevel, levelWidth, levelHeight, cursorX, cursorY);
-		doneEditing = EditLevel(pLevel, cursorX, cursorY, levelWidth, levelHeight);
+		DisplayLevel(pLevel, width, height, cursorX, cursorY);
+		DisplayLegend();
+		doneEditing = EditLevel(pLevel, cursorX, cursorY, width, height);
 	}
 
 	system("cls");
-	DisplayLevel(pLevel, levelWidth, levelHeight, -1, -1);
+	DisplayLevel(pLevel, width, height, -1, -1);
 
-	SaveLevel(pLevel, levelWidth, levelHeight);
+	SaveLevel(pLevel, width, height);
+}
 
-	delete[] pLevel;
-	pLevel = nullptr;
+void DisplayLegend()
+{
+	cout << "Arrows to move cursor" << endl;
+	cout << "ESC to finish edditing" << endl;
+	cout << "+ | - for walls" << endl;
+	cout << "@ for player start position" << endl;
+	cout << "r g b for key" << endl;
+	cout << "R G B for door" << endl;
+	cout << "$ for money" << endl;
+	cout << "v for vertical moving enemy" << endl;
+	cout << "h for horizontal moving enemy" << endl;
+	cout << "e for non moving enemy" << endl;
+	cout << "X for end" << endl;
 }
 
 void SaveLevel(char* pLevel, int width, int height)
@@ -70,7 +154,7 @@ void SaveLevel(char* pLevel, int width, int height)
 	string levelName;
 	cin >> levelName;
 
-	levelName.insert(0, "./");
+	levelName.insert(0, "../");
 
 	ofstream levelFile;
 	levelFile.open(levelName);
@@ -143,6 +227,10 @@ bool EditLevel(char* pLevel, int& cursorX, int& cursorY, int width, int height)
 		if (intInput == kEscapeKey)
 		{
 			return true;
+		}
+		else if (intInput == kBackspace)
+		{
+			//ignore
 		}
 		else
 		{
