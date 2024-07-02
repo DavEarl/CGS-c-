@@ -1,5 +1,7 @@
 #include <iostream>
 #include "Game.h"
+#include "AudioManager.h"
+#include "StateMachineExampleGame.h"
 
 using namespace std;
 
@@ -7,40 +9,13 @@ int main()
 {
 	Game myGame;
 
-	if (myGame.Load())
-	{
-		while (!myGame.IsGameOver())
-		{
-			myGame.Run();
-		}
+	StateMachineExampleGame gameStateMachine(&myGame);
 
-		cout << "YOU WIN!!!" << endl;
+	myGame.Initialize(&gameStateMachine);
+	myGame.RunGameLoop();
+	myGame.Deinitialize();
 
-	}
-	else
-	{
-		cout << "game did not load, terminating" << endl;
-	}
+	AudioManager::DestroyInstance();
+
+	return 0;
 }
-
-
-//void PlayDoorClosedSound()
-//{
-//	Beep(500, 75);
-//	Beep(500, 75);
-//}
-//
-//void PlayDoorOpenSound()
-//{
-//	Beep(1397, 200);
-//}
-//
-//void PlayKeyPickupSound()
-//{
-//	Beep(1568, 200);
-//}
-//
-//void PlayWinSound()
-//{
-//	Beep(100, 100);
-//}
